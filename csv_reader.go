@@ -19,15 +19,20 @@ type CSV struct {
 	line      []string
 	seperator []byte
 	fd        *os.File
+	currPos   int64
 }
 
-func NewReader(csvpath string) (*CSV, error) {
-	fd, err := os.OpenFile(csvpath, os.O_CREATE|os.O_RDWR, os.FileMode.Perm())
+func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
+	fd, err := os.Open(csvpath)
 	if err != nil {
 		return nil, ErrOpenFile
 	}
 	obj := &CSV{
-		fd: fd,
+		_headers:  make(map[string]int),
+		line:      make([]string, 0),
+		seperator: defaultSep,
+		fd:        fd,
+		currPos:   int64(0),
 	}
 	if err := obj.parseHeader(); err != nil {
 		return nil, err
@@ -36,6 +41,7 @@ func NewReader(csvpath string) (*CSV, error) {
 }
 
 func (_this *CSV) yield() (<-chan string, error) {
+	_this.fd.Seek(int64(1), 1)
 	scanner := bufio.NewScanner(_this.fd)
 	if err := scanner.Err(); err != nil {
 		return nil, err
@@ -67,6 +73,7 @@ func (_this *CSV) parseHeader() error {
 	for i, header := range headers {
 		_this._headers[string(header)] = i
 	}
+	_this.currPos++
 	return nil
 }
 

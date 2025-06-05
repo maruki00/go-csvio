@@ -1,4 +1,5 @@
-package gocsvio
+// package gocsvio
+package main
 
 import (
 	"bufio"

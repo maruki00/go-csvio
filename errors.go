@@ -1,1 +1,1 @@
-package gocsvio
+package main

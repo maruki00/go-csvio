@@ -1,0 +1,6 @@
+id,email_list_id,segment_id,email,first_name,last_name,country,stats,city,zip_code,timezone,hash,created_at
+00001,55,1,00ibarrajuan@gmail.com,,,,,,,UTC,a62feaab,"2020-02-20 14:15:05"
+00002,55,1,0106cdiaz@gmail.com,,,,,,,UTC,60989ee7,"2020-02-20 14:15:05"
+00003,55,1,0106cdiazu@gmail.com,,,,,,,UTC,fa71b2f0,"2020-02-20 14:15:05"
+00004,55,1,01bronwync@gmail.com,,,,,,,UTC,8f98ddbe,"2020-02-20 14:15:05"
+00005,55,1,01lauriebeth@gmail.com,,,,,,,UTC,59f22c9e,"2020-02-20 14:15:05"

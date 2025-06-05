@@ -13,12 +13,11 @@ func main() {
 	}
 
 	fmt.Println(csv._headers)
-	line, _ := csv.yield()
-
-	for l := range line {
+	line, err := csv.lines()
+	if err != nil {
+		panic(err)
+	}
+	for l := range <-line {
 		fmt.Println(l)
 	}
-	fmt.Println(<-line)
-	fmt.Println(<-line)
-	fmt.Println(<-line)
 }

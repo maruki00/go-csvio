@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"io"
 	"os"
 )
 
@@ -41,8 +42,8 @@ func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
 	return obj, nil
 }
 
-func (_this *CSV) yield() (<-chan string, error) {
-	_this.fd.Seek(int64(1), 1)
+func (_this *CSV) lines() (<-chan string, error) {
+	_this.fd.Seek(int64(1), io.SeekCurrent)
 	scanner := bufio.NewScanner(_this.fd)
 	if err := scanner.Err(); err != nil {
 		return nil, err

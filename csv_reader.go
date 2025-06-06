@@ -17,34 +17,62 @@ var (
 )
 
 type CSV struct {
-	_headers  map[string]int
-	line      []string
-	seperator []byte
-	fd        *os.File
-	currPos   int64
+	_headers   map[string]int
+	delimiters []byte
+	file       *os.File
+	currPos    int64
+}
+
+func (_this *CSV) SetDelimiters(delimiters []byte) {
+	_this.delimiters = delimiters
+}
+
+func (_this *CSV) SeekToLine( /* file *os.File, */ line uint) error {
+	var buf [1]byte
+	var offset = int64(1)
+	_this.file.Seek(int64(0), io.SeekStart)
+	reader := bufio.NewReader(_this.file)
+	for _, err := reader.Read(buf[:]); err != nil && line > 0; {
+		if buf[0] == '\n' {
+			line--
+		}
+		_this.file.Seek(offset, io.SeekCurrent)
+	}
+	return nil
 }
 
 func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
-	fd, err := os.Open(csvpath)
+	file, err := os.Open(csvpath)
 	if err != nil {
 		return nil, ErrOpenFile
 	}
 	obj := &CSV{
-		_headers:  make(map[string]int),
-		line:      make([]string, 0),
-		seperator: defaultSep,
-		fd:        fd,
-		currPos:   int64(0),
+		_headers:   make(map[string]int),
+		delimiters: defaultSep,
+		file:       file,
+		currPos:    int64(0),
 	}
 	if err := obj.parseHeader(); err != nil {
 		return nil, err
 	}
+
 	return obj, nil
 }
 
 func (_this *CSV) lines() (<-chan string, error) {
-	_this.fd.Seek(int64(1), io.SeekCurrent)
-	scanner := bufio.NewScanner(_this.fd)
+
+	// //test
+	// file, err := os.Open("./file.csv")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// scanner := bufio.NewScanner(file)
+	// file.Seek(int64(1), 1)
+	//
+	// // end test
+
+	_this.file.Seek(int64(1), io.SeekCurrent)
+	scanner := bufio.NewScanner(_this.file)
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
@@ -59,19 +87,19 @@ func (_this *CSV) lines() (<-chan string, error) {
 }
 
 func (_this *CSV) parseHeader() error {
-	if _this.fd == nil {
+	if _this.file == nil {
 		return ErrFileNotAccessible
 	}
-	reader := bufio.NewReader(_this.fd)
-	_, err := _this.fd.Seek(int64(0), 0)
-	if err != nil {
-		return ErrFileProbablyEmpty
-	}
+	reader := bufio.NewReader(_this.file)
+	// _, err := _this.file.Seek(int64(0), 0)
+	// if err != nil {
+	// 	return ErrFileProbablyEmpty
+	// }
 	header, _, err := reader.ReadLine()
 	if err != nil {
 		return ErrCouldNotReadTheFile
 	}
-	headers := bytes.Split(header, _this.seperator)
+	headers := bytes.Split(header, _this.delimiters)
 	for i, header := range headers {
 		_this._headers[string(header)] = i
 	}
@@ -84,5 +112,5 @@ func (_this *CSV) Get(key string) any {
 	if !ok {
 		return ""
 	}
-	return _this.line[index]
+	return index
 }

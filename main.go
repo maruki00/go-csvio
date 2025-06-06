@@ -12,12 +12,13 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(csv._headers)
+	// fmt.Println(csv._headers)
 	line, err := csv.lines()
 	if err != nil {
 		panic(err)
 	}
-	for l := range <-line {
+
+	for l := range line {
 		fmt.Println(l)
 	}
 }

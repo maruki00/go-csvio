@@ -20,59 +20,128 @@ var (
 type CSV struct {
 	_headers   map[string]int
 	delimiters []byte
-	file       *os.File
 	currPos    int64
+	pathFile   string
+}
+type CSVLine struct {
+	headers map[string]int
+	Cols    map[string]any
+}
+
+func NewCSVLine(headers map[string]int) *CSVLine {
+	return &CSVLine{
+		headers: headers,
+		Cols:    make(map[string]any),
+	}
+}
+
+func (_this *CSVLine) Get(key string) any {
+	return _this
+}
+
+func (_this *CSVLine) parse(row string) *CSVLine {
+	return _this
+}
+func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
+	_this := &CSV{
+		_headers:   make(map[string]int),
+		delimiters: defaultSep,
+		currPos:    int64(0),
+		pathFile:   csvpath,
+	}
+	if err := _this.parseHeader(); err != nil {
+		panic(err)
+		return nil, err
+	}
+	return _this, nil
 }
 
 func (_this *CSV) SetDelimiters(delimiters []byte) {
 	_this.delimiters = delimiters
 }
 
-func (_this *CSV) SeekToLine( /* file *os.File, */ line uint) error {
+// func (_this *CSV) SeekToLine(file *os.File, line uint) error {
+// 	_, err := file.Seek(0, io.SeekStart)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	scanner := bufio.NewScanner(file)
+// 	currentLine := uint(0)
+// 	for scanner.Scan() {
+// 		currentLine++
+// 		if currentLine >= line {
+// 			break
+// 		}
+// 	}
+// 	if err := scanner.Err(); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
+
+func (_this *CSV) SeekToLine(file *os.File, line uint) error {
 	var buf [1]byte
-	var offset = int64(1)
-	_this.file.Seek(int64(0), io.SeekStart)
-	reader := bufio.NewReader(_this.file)
-	for _, err := reader.Read(buf[:]); err != nil && line > 0; {
-		if buf[0] == '\n' {
-			line--
+	var offset int64 = 0
+	_, err := file.Seek(0, io.SeekStart)
+	if err != nil {
+		return err
+	}
+	reader := bufio.NewReader(file)
+	for line > 0 {
+		n, err := reader.Read(buf[:])
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
 		}
-		_this.file.Seek(offset, io.SeekCurrent)
+		if n > 0 {
+			offset++
+			if buf[0] == '\n' {
+				line--
+			}
+		}
+	}
+	_, err = file.Seek(offset, io.SeekStart)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
-	file, err := os.Open(csvpath)
+func (_this *CSV) lines() error {
+	file, err := _this.Open()
 	if err != nil {
-		return nil, ErrOpenFile
+		panic(err)
 	}
-	obj := &CSV{
-		_headers:   make(map[string]int),
-		delimiters: defaultSep,
-		file:       file,
-		currPos:    int64(0),
-	}
-	if err := obj.parseHeader(); err != nil {
-		return nil, err
-	}
-
-	return obj, nil
-}
-
-func (_this *CSV) lines() (<-chan string, error) {
-
-	reader := bufio.NewScanner(_this.file)
+	defer file.Close()
+	_this.SeekToLine(file, 4)
+	reader := bufio.NewScanner(file)
 	for reader.Scan() {
 		fmt.Println(reader.Text())
 	}
+	return nil
+}
 
-	_this.file.Seek(int64(1), io.SeekCurrent)
-	scanner := bufio.NewScanner(_this.file)
+func (_this *CSV) Open() (*os.File, error) {
+	file, err := os.Open(_this.pathFile)
+	if err != nil {
+		return nil, ErrOpenFile
+	}
+	return file, nil
+}
+
+func (_this *CSV) yield() (<-chan CSVLine, error) {
+	file, err := _this.Open()
+	if err != nil {
+		return nil, err
+	}
+	line := NewCSVLine(_this._headers)
+	_this.SeekToLine(file, 1)
+	scanner := bufio.NewScanner(file)
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
-
 	chnl := make(chan string)
 	go func() {
 		for scanner.Scan() {
@@ -80,19 +149,17 @@ func (_this *CSV) lines() (<-chan string, error) {
 		}
 		close(chnl)
 	}()
-
 	return chnl, nil
 }
 
 func (_this *CSV) parseHeader() error {
-	if _this.file == nil {
-		return ErrFileNotAccessible
+	file, err := _this.Open()
+	if err != nil {
+		return err
 	}
-	reader := bufio.NewReader(_this.file)
-	// _, err := _this.file.Seek(int64(0), 0)
-	// if err != nil {
-	// 	return ErrFileProbablyEmpty
-	// }
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
 	header, _, err := reader.ReadLine()
 	if err != nil {
 		return ErrCouldNotReadTheFile

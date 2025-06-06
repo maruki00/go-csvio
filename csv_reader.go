@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 var (
@@ -40,6 +41,8 @@ func (_this *CSVLine) Get(key string) any {
 }
 
 func (_this *CSVLine) parse(row string) *CSVLine {
+	cls := strings.Split(row, ",")
+
 	return _this
 }
 func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
@@ -59,25 +62,6 @@ func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
 func (_this *CSV) SetDelimiters(delimiters []byte) {
 	_this.delimiters = delimiters
 }
-
-// func (_this *CSV) SeekToLine(file *os.File, line uint) error {
-// 	_, err := file.Seek(0, io.SeekStart)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	scanner := bufio.NewScanner(file)
-// 	currentLine := uint(0)
-// 	for scanner.Scan() {
-// 		currentLine++
-// 		if currentLine >= line {
-// 			break
-// 		}
-// 	}
-// 	if err := scanner.Err(); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
 
 func (_this *CSV) SeekToLine(file *os.File, line uint) error {
 	var buf [1]byte

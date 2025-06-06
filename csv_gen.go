@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func main() {
+func _main() {
 	const numRows = 10_000_000 // 10 million rows
 	const filename = "large_file.csv"
 

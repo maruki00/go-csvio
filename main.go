@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 func main() {
 	csv, err := NewReader("./file.csv", []byte{','})
 	if err != nil {
@@ -13,6 +11,18 @@ func main() {
 	}
 
 	for line := range lines {
-		fmt.Println(" -- ", line.Get("id"), line.Get("city"))
+		//fmt.Println(" -- ", line.Get("id"), line.Get("city"))
+		_ = line.Get("id")
+		_ = line.Get("city")
 	}
+
+	// file, err := os.Open("file.csv")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// parts := make([]string, 0)
+	// scanner := bufio.NewScanner(file)
+	// for scanner.Scan() {
+	// 	_ = Split(scanner.Text(), ",", &parts)
+	// }
 }

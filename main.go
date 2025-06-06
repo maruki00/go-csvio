@@ -13,7 +13,6 @@ func main() {
 	}
 
 	for line := range lines {
-		fmt.Println(" -- ", line)
+		fmt.Println(" -- ", line.Get("id"), line.Get("city"))
 	}
-
 }

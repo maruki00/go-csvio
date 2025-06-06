@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 )
@@ -61,21 +62,17 @@ func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
 
 func (_this *CSV) lines() (<-chan string, error) {
 
-	// //test
-	// file, err := os.Open("./file.csv")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// scanner := bufio.NewScanner(file)
-	// file.Seek(int64(1), 1)
-	//
-	// // end test
+	reader := bufio.NewScanner(_this.file)
+	for reader.Scan() {
+		fmt.Println(reader.Text())
+	}
 
 	_this.file.Seek(int64(1), io.SeekCurrent)
 	scanner := bufio.NewScanner(_this.file)
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
+
 	chnl := make(chan string)
 	go func() {
 		for scanner.Scan() {
@@ -83,6 +80,7 @@ func (_this *CSV) lines() (<-chan string, error) {
 		}
 		close(chnl)
 	}()
+
 	return chnl, nil
 }
 

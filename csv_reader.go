@@ -26,25 +26,28 @@ type CSV struct {
 }
 type CSVLine struct {
 	headers map[string]int
-	Cols    map[string]any
+	Cols    []string
 }
 
 func NewCSVLine(headers map[string]int) *CSVLine {
 	return &CSVLine{
 		headers: headers,
-		Cols:    make(map[string]any),
+		Cols:    make([]string, len(headers)),
 	}
 }
 
 func (_this *CSVLine) Get(key string) any {
-	return _this
+	index, ok := _this.headers[key]
+	if !ok {
+		return ""
+	}
+	return _this.Cols[index]
 }
 
-func (_this *CSVLine) parse(row string) *CSVLine {
-	cls := strings.Split(row, ",")
-
-	return _this
+func (_this *CSVLine) parse(row string) {
+	_this.Cols = strings.Split(row, ",")
 }
+
 func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
 	_this := &CSV{
 		_headers:   make(map[string]int),
@@ -53,7 +56,6 @@ func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
 		pathFile:   csvpath,
 	}
 	if err := _this.parseHeader(); err != nil {
-		panic(err)
 		return nil, err
 	}
 	return _this, nil
@@ -126,10 +128,11 @@ func (_this *CSV) yield() (<-chan CSVLine, error) {
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
-	chnl := make(chan string)
+	chnl := make(chan CSVLine)
 	go func() {
 		for scanner.Scan() {
-			chnl <- scanner.Text()
+			line.parse(scanner.Text())
+			chnl <- *line
 		}
 		close(chnl)
 	}()
@@ -154,12 +157,4 @@ func (_this *CSV) parseHeader() error {
 	}
 	_this.currPos++
 	return nil
-}
-
-func (_this *CSV) Get(key string) any {
-	index, ok := _this._headers[key]
-	if !ok {
-		return ""
-	}
-	return index
 }

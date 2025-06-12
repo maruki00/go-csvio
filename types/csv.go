@@ -7,17 +7,20 @@ type CSV struct {
 	pathFile  string
 }
 
-func NewReader(csvpath string, defaultSep []byte) (*CSV, error) {
+func NewCSV(csvpath string) (*CSV, error) {
 	_this := &CSV{
 		_headers:   make(map[string]int),
-		delimiters: defaultSep,
-		currPos:    int64(0),
-		pathFile:   csvpath,
+		delimiter: '',
+		csvPath:   csvpath,
 	}
 	if err := _this.parseHeader(); err != nil {
 		return nil, err
 	}
 	return _this, nil
+}
+
+func (_this *CSV)extractDelimeter(){
+
 }
 
 func (_this *CSV) SetDelimiters(delimiters []byte) {
@@ -110,7 +113,30 @@ func (_this *CSV) parseHeader() error {
 	if err != nil {
 		return ErrCouldNotReadTheFile
 	}
-	headers := bytes.Split(header, _this.delimiters)
+	headers := bytes.Split(header, string(_this.delimiter))
+	for i, header := range headers {
+		_this._headers[string(header)] = i
+	}
+	_this.currPos++
+	return nil
+}
+
+
+
+func (_this *CSV) parseDelimeter() error {
+	file, err := _this.Open()
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	header, _, err := reader.ReadLine()
+	if err != nil {
+		return ErrCouldNotReadTheFile
+	}
+
+	headers := bytes.Split(header, string(_this.delimiter))
 	for i, header := range headers {
 		_this._headers[string(header)] = i
 	}

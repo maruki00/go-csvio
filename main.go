@@ -1,7 +1,7 @@
 package main
 
 func main() {
-	csv, err := NewReader("./file.csv", []byte{','})
+	csv, err := NewReader("./file.csv", ',')
 	if err != nil {
 		panic(err)
 	}
@@ -15,6 +15,9 @@ func main() {
 		_ = line.Get("id")
 		_ = line.Get("city")
 	}
+
+
+
 
 	// file, err := os.Open("file.csv")
 	// if err != nil {

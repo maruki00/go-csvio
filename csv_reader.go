@@ -11,38 +11,10 @@ import (
 	"strings"
 )
 
-var (
-	ErrOpenFile            = errors.New("could not open the csv file")
-	ErrFileNotAccessible   = errors.New("could not access this csv file")
-	ErrFileProbablyEmpty   = errors.New("file probably empty")
-	ErrCouldNotReadTheFile = errors.New("could not read the file")
-)
 
-type CSV struct {
-	_headers   map[string]int
-	delimiters []byte
-	currPos    int64
-	pathFile   string
-}
-type CSVLine struct {
-	headers map[string]int
-	Cols    []string
-}
 
-func NewCSVLine(headers map[string]int) *CSVLine {
-	return &CSVLine{
-		headers: headers,
-		Cols:    make([]string, len(headers)),
-	}
-}
+var delimiters = []byte{',', '|', ';', '\t', '`', '"', '~'}
 
-func (_this *CSVLine) Get(key string) any {
-	index, ok := _this.headers[key]
-	if !ok {
-		return ""
-	}
-	return _this.Cols[index]
-}
 func Split(s, sep string, parts *[]string) int {
 	*parts = (*parts)[:0]
 	if s == "" {

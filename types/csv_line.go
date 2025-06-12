@@ -1,13 +1,17 @@
 package types
 
+import "github.com/maruki00/go-csvio/utils"
+
 type CSVLine struct {
 	headers map[string]int
+	delimeter byte
 	Cols    []string
 }
 
-func NewCSVLine(headers map[string]int) *CSVLine {
+func NewCSVLine(headers map[string]int, del byte) *CSVLine {
 	return &CSVLine{
 		headers: headers,
+		delimeter: del,
 		Cols:    make([]string, len(headers)),
 	}
 }
@@ -19,3 +23,8 @@ func (_this *CSVLine) Get(key string) any {
 	}
 	return _this.Cols[index]
 }
+
+func (_this *CSVLine) parse(row string) {
+	utils.Split(row, string(_this.delimeter) , &_this.Cols)
+}
+
